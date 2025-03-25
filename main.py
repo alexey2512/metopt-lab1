@@ -11,7 +11,7 @@ max_values = np.array([5, 5])
 start_pos = np.array([0, 0])
 
 # choose strategy from gradient_utils, u can choose lib analogues
-next_position_strategy = fixed_step_strategy(1)
+next_position_strategy = armijo_step_strategy_lib
 
 
 ax = plt.figure().add_subplot(111, projection='3d')
