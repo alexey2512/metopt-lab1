@@ -3,15 +3,15 @@ from gradient_utils import *
 from function_examples import *
 
 # choose function from function_examples
-func_2 = some_function
+func_2 = sin_x_cos_y
 
 # change domain and start position
-min_values = np.array([-5, -5])
-max_values = np.array([5, 5])
+min_values = np.array([-2, -2])
+max_values = np.array([2, 2])
 start_pos = np.array([0, 0])
 
 # choose strategy from gradient_utils, u can choose lib analogues
-next_position_strategy = armijo_step_strategy_lib
+next_position_strategy = fixed_step_strategy(0.1)
 
 
 ax = plt.figure().add_subplot(111, projection='3d')

@@ -10,6 +10,12 @@ quadratic_strong_conditioned = lambda _x: _x[0] ** 2 + _x[1] ** 2
 # qf ill conditioned
 quadratic_ill_conditioned = lambda _x: 0.1 * _x[0] ** 2 + 10 * _x[1] ** 2
 
+# sin x cos y
+sin_x_cos_y = lambda _x: np.sin(_x[0]) * np.cos(_x[1])
+
+# non-continuous two paraboloids
+min_of = lambda _x: np.minimum((_x[0] - 2) ** 2 + (_x[1] - 2) ** 2 + 2, _x[0] ** 2 + _x[1] ** 2)
+
 # like a cone function
 norm_func = lambda _x: np.sqrt(_x[0] ** 2 + _x[1] ** 2)
 
