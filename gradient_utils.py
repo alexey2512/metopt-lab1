@@ -1,23 +1,28 @@
 import numpy as np
 import scipy.optimize as so
+from scipy.misc import derivative
 
 # derivative precision
 DERIVATIVE_DELTA = 10e-5
 
-def __approx_derivative(func, x, dx):
-    return (func(x + DERIVATIVE_DELTA * dx) - func(x)) / DERIVATIVE_DELTA
+# global counter of derivative invocations
+derivative_counter = 0
 
+def __approx_derivative(func, x, dx, consider=True):
+    global derivative_counter
+    if consider:
+        derivative_counter += 1
+    return (func(x + DERIVATIVE_DELTA * dx) - func(x - DERIVATIVE_DELTA * dx)) / DERIVATIVE_DELTA / 2.0
 
 # flatten coefficients for tangents
-TANGENT_FLATTEN_1 = 0.5
-TANGENT_FLATTEN_2 = 0.8
+TANGENT_FLATTEN_1 = 1e-3
+TANGENT_FLATTEN_2 = 0.7
 
 # reducing step for alpha argument
 Q_STEP = 0.9
 
 # count of iterations for 1-dimensional methods
-ITERATIONS = 50
-
+ONE_DIM_ITERATIONS = 100
 
 def __one_dimensional_method(func_1, max_alpha, acceptable):
     f0 = func_1(0)
@@ -25,7 +30,7 @@ def __one_dimensional_method(func_1, max_alpha, acceptable):
     soft_tangent_1 = lambda a: f0 + df0 * a * TANGENT_FLATTEN_1
     soft_tangent_2 = lambda a: f0 + df0 * a * TANGENT_FLATTEN_2
     alpha = max_alpha
-    for _ in range(ITERATIONS):
+    for _ in range(ONE_DIM_ITERATIONS):
         if acceptable(func_1, alpha, soft_tangent_1, soft_tangent_2, df0):
             break
         alpha = alpha * Q_STEP
@@ -41,7 +46,7 @@ def __one_dimensional_method_advanced(func_1, max_alpha, acceptable):
     alpha = max_alpha
     min_alpha = alpha
     f_min_alpha = func_1(min_alpha)
-    for _ in range(ITERATIONS):
+    for _ in range(ONE_DIM_ITERATIONS):
         if acceptable(func_1, alpha, soft_tangent_1, soft_tangent_2, df0):
             f_alpha = func_1(alpha)
             if f_alpha < f_min_alpha:
@@ -80,51 +85,33 @@ def __goldstein(func_1, max_alpha):
 def __goldstein_advanced(func_1, max_alpha):
     return __one_dimensional_method_advanced(func_1, max_alpha, __goldstein_strategy)
 
+#global counter of gradient invocations
+gradient_counter = 0
 
-# =====================
-
-
-def __gradient(func_n, x):
+def __gradient(func_n, x, consider=True):
+    global gradient_counter
+    if consider:
+        gradient_counter += 1
     result = []
     size = len(x)
     for i in range(size):
         dxi = np.zeros(size)
         dxi[i] = 1
-        result.append(__approx_derivative(func_n, x, dxi))
+        result.append(__approx_derivative(func_n, x, dxi, consider))
     return np.array(result)
-
-
-def __draw_direction_3d(position, direction, value, plot):
-    if np.linalg.norm(direction) < 1e-10:
-        return
-    plot.quiver(
-        position[0], position[1], value,
-        direction[0], direction[1], 0,
-        linewidth=2, color='black', arrow_length_ratio=1, zorder=2
-    )
-    t = np.linspace(0, 1, 100)
-    cx = position[0]
-    cy = position[1]
-    cz = t * value
-    plot.plot(cx, cy, cz, linestyle='--', linewidth=1, color='black', zorder=0)
-
 
 # count of gradient descent iterations
 DESCENT_ITERATIONS = 100
 
 # epsilon for stop condition
-EPSILON = 1e-9
-
-# epsilon for drawing gradients
-DRAW_EPS = 0.5
+EPSILON = 1e-5
 
 def gradient_descent(
         func_n,
         min_values,
         max_values,
         start_position,
-        next_position_strategy,
-        plot
+        next_position_strategy
 ):
     """
     Executes a gradient descent algorithm from start_position
@@ -145,21 +132,18 @@ def gradient_descent(
         max_alpha = higher bound for argument of func_1,
     which returns alpha to get next position by formula: x_k - alpha * grad
 
-    :param plot: plot to draw anti-gradient directions
-
     :return: approximated minimum of func_n
     """
 
     current_x = start_position
-    grad0_norm = np.linalg.norm(__gradient(func_n, current_x))**2
-
+    grad0_norm = np.linalg.norm(__gradient(func_n, current_x, False))**2
+    positions = [start_position]
     for k in range(1, DESCENT_ITERATIONS + 1):
         grad = __gradient(func_n, current_x)
         if np.linalg.norm(grad) < EPSILON * grad0_norm:
             break
-        __draw_direction_3d(current_x, -grad * DRAW_EPS, func_n(current_x), plot)
-        func_1 = lambda a: func_n(current_x - a * grad) # restriction to the gradient line
-        max_alpha = float('inf') # calculating how far we can move
+        func_1 = lambda a: func_n(current_x - a * grad)
+        max_alpha = float('inf')
         for i in range(len(grad)):
             if grad[i] < 0:
                 max_alpha = min(max_alpha, (current_x[i] - max_values[i]) / grad[i])
@@ -167,8 +151,8 @@ def gradient_descent(
                 max_alpha = min(max_alpha, (current_x[i] - min_values[i]) / grad[i])
         step_c = next_position_strategy(k, func_1, max_alpha)
         current_x = current_x - step_c * grad
-
-    return func_n(current_x)
+        positions.append(current_x)
+    return positions
 
 
 # ==================
@@ -208,7 +192,7 @@ def wolfe_step_strategy_lib(_, func_1, max_alpha):
         phi, derphi,
         phi0=phi0, derphi0=derphi0,
         c1=TANGENT_FLATTEN_1, c2=TANGENT_FLATTEN_2,
-        maxiter=ITERATIONS
+        maxiter=ONE_DIM_ITERATIONS
     )
     alpha = result[0] if result is not None else None
     return alpha if alpha is not None else max_alpha * 0.5
