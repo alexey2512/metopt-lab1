@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.optimize as so
-from scipy.misc import derivative
 
 # derivative precision
 DERIVATIVE_DELTA = 10e-5
