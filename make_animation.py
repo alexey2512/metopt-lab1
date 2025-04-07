@@ -33,5 +33,5 @@ def run(data):
     line.set_data(xdata, ydata)
     return line,
 
-ani = animation.FuncAnimation(fig, run, data_gen, interval=300, init_func=init, save_count=len(cfg.points))
+ani = animation.FuncAnimation(fig, run, data_gen, interval=300, init_func=init, save_count=min(len(cfg.points), 10))
 ani.save('animation.gif', writer='pillow')

@@ -3,7 +3,7 @@ import function_examples as fe
 import gradient_utils as gu
 
 # target function
-function = fe.quadratic_3
+function = fe.quadratic_1
 
 # bounds
 min_values = np.array([-5, -5])
@@ -13,7 +13,8 @@ max_values = np.array([5, 5])
 start = np.array([1, 1])
 
 # one dimensional strategy
-strategy = gu.fixed_step_strategy(0.1)
+strategy = gu.fixed_step_strategy(0.5)
+
 
 
 __count = 400

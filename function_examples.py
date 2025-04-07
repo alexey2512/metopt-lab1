@@ -7,11 +7,11 @@ coord_sum = lambda _x: _x[0] + _x[1]
 # qf strong conditioned
 quadratic_1 = lambda _x: _x[0] ** 2 + _x[1] ** 2
 
-# qf strong conditioned stretched
-quadratic_2 = lambda _x: 10 * _x[0] ** 2 + 10 * _x[1] ** 2
-
 # qf ill conditioned
-quadratic_3 = lambda _x: 2 * _x[0] ** 2 + 0.5 * _x[1] ** 2
+quadratic_2 = lambda _x: 4 * _x[0] ** 2 + 0.25 * _x[1] ** 2
+
+#qf some nontrivial
+quadratic_3 = lambda _x: 3 * _x[0] ** 2 + 3 * _x[0] * _x[1] + _x[1] ** 2
 
 # sin x cos y
 sin_x_cos_y = lambda _x: np.sin(_x[0]) * np.cos(_x[1])
